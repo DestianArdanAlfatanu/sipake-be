@@ -1,6 +1,6 @@
-import { CarYear } from '../../car-years/entities/car-year.entity';
-import { EngineCode } from '../../engine-codes/entities/engine-code.entity';
-import { CarSeries } from '../../car-series/entities/car-series.entity';
+import { CarYear } from '../../car/car-years/entities/car-year.entity';
+import { EngineCode } from '../../engine/engine-codes/entities/engine-code.entity';
+import { CarSeries } from '../../car/car-series/entities/car-series.entity';
 import {
   Column,
   CreateDateColumn,

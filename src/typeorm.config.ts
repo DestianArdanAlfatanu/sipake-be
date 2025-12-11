@@ -1,13 +1,16 @@
 import { DataSourceOptions } from 'typeorm';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 export const dataSourceOptions: DataSourceOptions = {
-  type: 'mysql',
-  host: 'localhost',
-  port: 3306,
-  username: 'root',
-  password: '',
-  database: 'sipake',
-  entities: ['dist/**/*.entity.js'],
+  type: 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT) || 5432,
+  username: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
+  database: process.env.DB_NAME || 'sipake',
+  entities: [__dirname + '/**/*.entity{.ts,.js}'],
   migrations: ['dist/migrations/*.js'],
   synchronize: true,
 };

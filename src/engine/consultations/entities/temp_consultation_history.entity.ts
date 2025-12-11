@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 import { Symptom } from '../../symptoms/entities/symptom.entity';
 
 @Entity({ name: 'temp_consultation_histories' })

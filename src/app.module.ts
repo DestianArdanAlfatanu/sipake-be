@@ -4,21 +4,22 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { CarYearsModule } from './car-years/car-years.module';
-import { EngineCodesModule } from './engine-codes/engine-codes.module';
-import { CarSeriesModule } from './car-series/car-series.module';
+import { CarYearsModule } from './car/car-years/car-years.module';
+import { EngineCodesModule } from './engine/engine-codes/engine-codes.module';
+import { CarSeriesModule } from './car/car-series/car-series.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
-import { SolutionsModule } from './solutions/solutions.module';
-import { ProblemsModule } from './problems/problems.module';
-import { SymptomsModule } from './symptoms/symptoms.module';
-import { RulesModule } from './rules/rules.module';
-import { ConsultationsModule } from './consultations/consultations.module';
+import { SolutionsModule } from './engine/solutions/solutions.module';
+import { ProblemsModule } from './engine/problems/problems.module';
+import { SymptomsModule } from './engine/symptoms/symptoms.module';
+import { RulesModule } from './engine/rules/rules.module';
+import { ConsultationsModule } from './engine/consultations/consultations.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { SuspensionModule } from './suspension/suspension.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     SymptomsModule,
     RulesModule,
     ConsultationsModule,
+    SuspensionModule,
   ],
   controllers: [AppController],
   providers: [

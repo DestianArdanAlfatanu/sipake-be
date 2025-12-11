@@ -1,4 +1,4 @@
-import { Problem } from 'src/problems/entities/problem.entity';
+import { Problem } from '../../problems/entities/problem.entity';
 import {
   Column,
   CreateDateColumn,
@@ -6,7 +6,7 @@ import {
   JoinColumn,
   ManyToOne,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 
 @Entity({ name: 'consultation_histories' })
 export class ConsultationHistory {
