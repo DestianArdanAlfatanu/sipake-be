@@ -2,23 +2,29 @@ import {
   Column,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
-  OneToOne,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Symptom } from '../../symptoms/entities/symptom.entity';
 import { Problem } from '../../problems/entities/problem.entity';
 
 @Entity({ name: 'rules' })
 export class Rule {
-  @Column({ type: 'varchar', length: 4, primary: true })
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @OneToOne(() => Problem)
-  @JoinColumn({ name: 'problem_id', referencedColumnName: 'id' })
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  code: string;
+
+  // Nilai Keyakinan Pakar (0.0 - 1.0)
+  @Column({ type: 'float', name: 'cf_pakar', default: 0.8 })
+  cfPakar: number;
+
+  @ManyToOne(() => Problem, (problem) => problem.rules, { eager: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'problem_id' })
   problem: Problem;
 
-  @ManyToMany(() => Symptom, (symptom) => symptom.rules)
-  @JoinTable()
-  symptoms: Symptom[];
+  @ManyToOne(() => Symptom, (symptom) => symptom.rules, { eager: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'symptom_id' })
+  symptom: Symptom;
 }

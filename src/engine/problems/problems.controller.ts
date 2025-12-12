@@ -3,7 +3,7 @@ import { ProblemsService } from './problems.service';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.dto';
 
-@Controller('problems')
+@Controller('engine/problems')
 export class ProblemsController {
   constructor(private readonly problemsService: ProblemsService) {}
 

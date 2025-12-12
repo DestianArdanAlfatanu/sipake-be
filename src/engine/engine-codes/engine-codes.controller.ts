@@ -2,7 +2,7 @@ import { Controller, Get, Param } from '@nestjs/common';
 import { EngineCodesService } from './engine-codes.service';
 import { ResponseMessage } from '../../common/decorators/response-message.decorator';
 
-@Controller('engine-codes')
+@Controller('engine/codes')
 export class EngineCodesController {
   constructor(private readonly engineCodesService: EngineCodesService) {}
 

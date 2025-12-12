@@ -3,7 +3,7 @@ import { SymptomsService } from './symptoms.service';
 import { CreateSymptomDto } from './dto/create-symptom.dto';
 import { UpdateSymptomDto } from './dto/update-symptom.dto';
 
-@Controller('symptoms')
+@Controller('engine/symptoms')
 export class SymptomsController {
   constructor(private readonly symptomsService: SymptomsService) {}
 

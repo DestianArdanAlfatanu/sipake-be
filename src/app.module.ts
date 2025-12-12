@@ -36,6 +36,7 @@ import { SuspensionModule } from './suspension/suspension.module';
         database: configService.get('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
+        // dropSchema: true
       }),
     }),
     JwtModule.register({

@@ -3,7 +3,7 @@ import { RulesService } from './rules.service';
 import { CreateRuleDto } from './dto/create-rule.dto';
 import { UpdateRuleDto } from './dto/update-rule.dto';
 
-@Controller('rules')
+@Controller('enginerules')
 export class RulesController {
   constructor(private readonly rulesService: RulesService) {}
 

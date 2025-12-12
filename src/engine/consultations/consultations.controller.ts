@@ -1,41 +1,20 @@
-import { Controller, Post, UseGuards, Request, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpCode } from '@nestjs/common';
 import { ConsultationsService } from './consultations.service';
-import { ResponseMessage } from '../../common/decorators/response-message.decorator';
-import { AuthGuard } from '../../common/guards/auth.guard';
 import { ConsultationProcessDto } from './dto/consultation-process.dto';
 
-@Controller('consultations')
+@Controller('engine/consultations')
 export class ConsultationsController {
   constructor(private readonly consultationsService: ConsultationsService) {}
 
-  @Post('start')
-  @ResponseMessage('Konsultasi dimulai')
-  @UseGuards(AuthGuard)
-  startConsultation(@Request() req: { username: string }) {
-    return this.consultationsService.startConsultation(req.username);
+  @Get('start')
+  start() {
+    return this.consultationsService.start();
   }
 
   @Post('process')
-  @ResponseMessage('Proses Konsultasi Berhasil')
-  @UseGuards(AuthGuard)
-  processConsultation(
-    @Request() req: { username: string },
-    @Body() consultationProcessDto: ConsultationProcessDto,
-  ) {
-    return this.consultationsService.processConsultation(
-      req.username,
-      consultationProcessDto,
-    );
-  }
-
-  @Get('histories')
-  @ResponseMessage('Berhasil mendapatkan riwayat konsultasi')
-  @UseGuards(AuthGuard)
-  getConsultationHistories(
-    @Request() req: { username: string },
-  ) {
-    return this.consultationsService.getConsultationHistories(
-      req.username,
-    );
+  @HttpCode(200)
+  async process(@Body() dto: ConsultationProcessDto) {
+    const username = 'guest'; // Bisa diganti logic auth user
+    return this.consultationsService.process(username, dto);
   }
 }

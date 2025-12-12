@@ -1,17 +1,14 @@
-import { Column, Entity, ManyToMany } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { Rule } from '../../rules/entities/rule.entity';
 
 @Entity({ name: 'symptoms' })
 export class Symptom {
-  @Column({ type: 'varchar', length: 4, primary: true })
+  @PrimaryColumn({ type: 'varchar', length: 4 })
   id: string;
 
   @Column({ type: 'varchar', length: 255 })
-  name: string;
+  name: string; // Sesuaikan (misal: nama_gejala)
 
-  @Column({ type: 'varchar', length: 255 })
-  picture: string;
-
-  @ManyToMany(() => Rule, (rule) => rule.symptoms)
+  @OneToMany(() => Rule, (rule) => rule.symptom)
   rules: Rule[];
 }

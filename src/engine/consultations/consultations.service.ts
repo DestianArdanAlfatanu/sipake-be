@@ -1,231 +1,98 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Blackboard } from './entities/blackboard.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Rule } from '../rules/entities/rule.entity';
 import { ConsultationProcessDto } from './dto/consultation-process.dto';
-import { TempConsultationHistory } from './entities/temp_consultation_history.entity';
-import { ConsultationHistory } from './entities/consultation_history.entity';
 
 @Injectable()
 export class ConsultationsService {
   constructor(
-    @InjectRepository(Blackboard)
-    private blackboardRepository: Repository<Blackboard>,
     @InjectRepository(Rule)
     private rulesRepository: Repository<Rule>,
-    @InjectRepository(TempConsultationHistory)
-    private tempConsultationHistoryRepository: Repository<TempConsultationHistory>,
-    @InjectRepository(ConsultationHistory)
-    private consultationHistoryRepository: Repository<ConsultationHistory>,
   ) {}
 
-  async startConsultation(username: string) {
-    await this.deleteLastConsultationData(username);
+  // Endpoint Start hanya formalitas di CF
+  async start() {
+    return {
+      message: 'Silakan ambil data gejala dari endpoint GET /engine/symptoms',
+      status: 'Ready',
+    };
+  }
 
-    // Get all rules
+  // Logika Utama Certainty Factor
+  async process(username: string, dto: ConsultationProcessDto) {
+    // 1. Ambil ID gejala yang dipilih user
+    const symptomIds = dto.symptoms.map((s) => s.symptomId);
+
+    if (symptomIds.length === 0) {
+      return { best: null, ranking: [] };
+    }
+
+    // 2. Ambil Rules yang relevan + Join Masalah & Solusi
     const rules = await this.rulesRepository.find({
-      order: { id: 'ASC' },
-      relations: ['symptoms'],
-    });
-
-    // Create a blackboard for each symptom of each rule
-    for (const rule of rules) {
-      for (const symptom of rule.symptoms) {
-        await this.blackboardRepository.save({
-          rule,
-          user: { username },
-          symptom,
-        });
-      }
-    }
-
-    // Return the first symptom as initial state
-    const firstBlackboard = await this.blackboardRepository.findOne({
-      where: { user: { username } },
-      relations: ['symptom'],
-    });
-
-    return firstBlackboard.symptom;
-  }
-
-  async processConsultation(
-    username: string,
-    consultationProcessDto: ConsultationProcessDto,
-  ) {
-    // Save temp history
-    await this.tempConsultationHistoryRepository.save({
-      user: { username },
-      symptom: { id: consultationProcessDto.symptom_id },
-      yes: consultationProcessDto.yes,
-    });
-
-    // Update data with same symptom depends on consultationProcessDto.yes
-    await this.blackboardRepository.update(
-      {
-        user: { username },
-        symptom: { id: consultationProcessDto.symptom_id },
+      where: {
+        symptom: { id: In(symptomIds) },
       },
-      { done: true },
-    );
+      relations: ['problem', 'symptom', 'problem.solution'],
+    });
 
-    // If consultationProcessDto.yes is true, then delete all the blackboards with rules that not contains same symptom
-    // Otherwise delete all the blackboards that contains same symptom
-    if (consultationProcessDto.yes) {
-      await this.blackboardRepository
-        .createQueryBuilder()
-        .delete()
-        .from(Blackboard)
-        .where(
-          `rule_id NOT IN (
-        SELECT DISTINCT sub.rule_id
-        FROM blackboards sub
-        WHERE sub.symptom_id = :symptomId
-      )`,
-          { symptomId: consultationProcessDto.symptom_id },
-        )
-        .execute();
-    } else {
-      await this.blackboardRepository
-        .createQueryBuilder()
-        .delete()
-        .from(Blackboard)
-        .where(
-          `rule_id IN (
-        SELECT DISTINCT sub.rule_id
-        FROM blackboards sub
-        WHERE sub.symptom_id = :symptomId
-      )`,
-          { symptomId: consultationProcessDto.symptom_id },
-        )
-        .execute();
+    // 3. Grouping Rules berdasarkan Masalah
+    const grouped: Record<string, Rule[]> = {};
+    for (const r of rules) {
+      const pid = r.problem.id;
+      if (!grouped[pid]) grouped[pid] = [];
+      grouped[pid].push(r);
     }
 
-    // Count remaining blackboard grouped by rule_id (with same rule_id, considered as one)
-    const groupedBlackboards = await this.blackboardRepository
-      .createQueryBuilder()
-      .select('rule_id')
-      .groupBy('rule_id')
-      .getRawMany();
+    const results: any[] = [];
 
-    // Continue to next symptoms
-    if (groupedBlackboards.length > 1) {
-      const nextBlackboard = await this.blackboardRepository.findOne({
-        where: { user: { username }, done: false },
-        order: { symptom: { id: 'ASC' }, rule: { id: 'ASC' } },
-        relations: ['symptom', 'rule'],
-      });
+    // 4. Hitung CF Combine untuk setiap masalah
+    for (const pid of Object.keys(grouped)) {
+      let CFold = 0;
+      const rulesForProblem = grouped[pid];
+      const problem = rulesForProblem[0].problem;
+      
+      // Ambil solusi (safe navigation)
+      // Sesuaikan nama field 'solution' atau 'solusi' dengan entity Solution Anda
+      const solutionText = problem.solution ? (problem.solution as any).solution : 'Solusi belum tersedia';
 
-      return {
-        status: 'Continue',
-        data: nextBlackboard,
-      };
-    }
+      for (const rule of rulesForProblem) {
+        const userInput = dto.symptoms.find((s) => s.symptomId === rule.symptom.id);
+        if (!userInput) continue;
 
-    // Finish consultation by remaining rule_id or check not done yet symptoms
-    if (groupedBlackboards.length == 1) {
-      const notDoneYet = await this.blackboardRepository.count({
-        where: {
-          user: { username },
-          done: false,
-        },
-      });
-      // Finish consultation
-      if (notDoneYet == 0) {
-        const finalBlackboard = await this.blackboardRepository.findOne({
-          where: { user: { username } },
-          relations: [
-            'rule',
-            'rule.problem',
-            'rule.problem.solution',
-          ],
-        });
+        const CF_user = this.clamp(userInput.userCf, 0, 1);
+        const CF_expert = this.clamp(rule.cfPakar, 0, 1);
+        
+        // CF Sequential: CF(H,E) = CF(E) * CF(Rule)
+        const CF_current = CF_user * CF_expert;
 
-        await this.deleteLastConsultationData(username);
-        await this.saveHistory(
-          username,
-          'Masalah Teridentifikasi',
-          finalBlackboard.rule.problem.id,
-        );
-
-        return {
-          status: 'Result',
-          data: finalBlackboard.rule,
-        };
-      } else {
-        // Continue to next symptoms
-        const nextBlackboard = await this.blackboardRepository.findOne({
-          where: { user: { username }, done: false },
-          order: { symptom: { id: 'ASC' }, rule: { id: 'ASC' } },
-          relations: ['symptom', 'rule'],
-        });
-
-        return {
-          status: 'Continue',
-          data: nextBlackboard.symptom,
-        };
+        // CF Combination: CF_new = CF_old + CF_current * (1 - CF_old)
+        CFold = CFold + CF_current * (1 - CFold);
       }
-    }
 
-    // Problem not found
-    const allHistoryCount =
-      await this.tempConsultationHistoryRepository.countBy({
-        user: { username },
-      });
-    const noAnswerCount = await this.tempConsultationHistoryRepository.countBy({
-      user: { username },
-      yes: false,
-    });
-
-    if (allHistoryCount == noAnswerCount) {
-      await this.deleteLastConsultationData(username);
-      await this.saveHistory(username, 'Tidak Ada Masalah', null);
-      return {
-        status: 'NeverHadAProblem',
-        data: {},
-      };
-    } else {
-      await this.deleteLastConsultationData(username);
-      await this.saveHistory(username, 'Masalah Tidak Teridentifikasi', null);
-      return {
-        status: 'ProblemNotFound',
-        data: {},
-      };
-    }
-  }
-
-  async saveHistory(
-    username: string,
-    status: string,
-    problem_id: string | null,
-  ) {
-    if (problem_id) {
-      await this.consultationHistoryRepository.save({
-        user: { username },
-        status,
-        problem: { id: problem_id },
-      });
-    } else {
-      await this.consultationHistoryRepository.save({
-        user: { username },
-        status,
+      results.push({
+        problemId: pid,
+        problemName: problem.name,
+        certainty: CFold,
+        formattedCertainty: (CFold * 100).toFixed(2) + '%',
+        solution: solutionText,
       });
     }
+
+    // 5. Urutkan dari nilai tertinggi
+    results.sort((a, b) => b.certainty - a.certainty);
+    const best = results.length > 0 && results[0].certainty > 0 ? results[0] : null;
+
+    return {
+      user: username,
+      total_problems_analyzed: results.length,
+      best_match: best,
+      all_possibilities: results,
+    };
   }
 
-  getConsultationHistories(username: string) {
-    return this.consultationHistoryRepository.find({
-      where: { user: { username } },
-      relations: ['problem', 'problem.solution'],
-      order: { consultation_date: 'DESC' },
-    });
-  }
-
-  async deleteLastConsultationData(username: string) {
-    // Reset blackboard for current user
-    await this.blackboardRepository.delete({ user: { username } });
-
-    // Reset temp consultation histories for current user
-    await this.tempConsultationHistoryRepository.delete({ user: { username } });
+  private clamp(v: number, min = 0, max = 1) {
+    if (typeof v !== 'number' || Number.isNaN(v)) return min;
+    return Math.min(Math.max(v, min), max);
   }
 }

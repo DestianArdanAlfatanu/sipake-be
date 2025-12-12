@@ -1,10 +1,17 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Problem } from '../../problems/entities/problem.entity';
 
 @Entity({ name: 'solutions' })
 export class Solution {
-  @Column({ type: 'varchar', primary: true, length: 4 })
-  id: string;
+  // Ganti @PrimaryColumn menjadi @PrimaryGeneratedColumn agar ID otomatis dibuat (1, 2, 3...)
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  name: string;
+  // Pastikan nama property ini 'solution' (bukan 'name') agar cocok dengan Seeder
+  @Column({ type: 'text' })
+  solution: string;
+
+  // Relasi balik ke Problem
+  @OneToOne(() => Problem, (problem) => problem.solution)
+  problem: Problem;
 }
