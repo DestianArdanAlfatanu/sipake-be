@@ -16,7 +16,7 @@ export class SuspensionRulesService {
     private problemRepo: Repository<SuspensionProblem>,
     @InjectRepository(SuspensionSymptom)
     private symptomRepo: Repository<SuspensionSymptom>,
-  ) {}
+  ) { }
 
   async create(dto: CreateRuleDto) {
     const problem = await this.problemRepo.findOne({ where: { id: dto.problemId } });
@@ -28,7 +28,7 @@ export class SuspensionRulesService {
     const entity = this.repo.create({
       problem,
       symptom,
-      expertCf: dto.expertCf ?? 0.8,
+      cfPakar: dto.expertCf ?? 0.8,
     });
 
     return this.repo.save(entity);

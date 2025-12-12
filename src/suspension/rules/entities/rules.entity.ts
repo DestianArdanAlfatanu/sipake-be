@@ -4,17 +4,23 @@ import { SuspensionSymptom } from '../../symptoms/entities/symptoms.entity';
 
 @Entity('suspension_rules')
 export class SuspensionRule {
-  @PrimaryGeneratedColumn()
+@PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => SuspensionProblem, (p) => p.rules, { eager: true })
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  code: string;
+
+  // Hubungkan ke Problem (ManyToOne)
+  @ManyToOne(() => SuspensionProblem, (problem) => problem.rules, { eager: true })
   @JoinColumn({ name: 'problem_id' })
   problem: SuspensionProblem;
 
-  @ManyToOne(() => SuspensionSymptom, (s) => s.rules, { eager: true })
+  // Hubungkan ke Symptom (ManyToOne)
+  @ManyToOne(() => SuspensionSymptom, (symptom) => symptom.rules, { eager: true })
   @JoinColumn({ name: 'symptom_id' })
   symptom: SuspensionSymptom;
 
-  @Column('float', { default: 0.8 })
-  expertCf: number;
+  // Tempat simpan nilai keyakinan Om Rizal (0.0 s.d 1.0)
+  @Column({ type: 'float', name: 'cf_pakar' })
+  cfPakar: number;
 }
