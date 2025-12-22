@@ -1,44 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm'; // Tambah 'In'
-
+import { In, Repository } from 'typeorm';
 import { SuspensionRule } from '../rules/entities/rules.entity';
-import { SuspensionProblem } from '../problems/entities/problems.entity';
 import { ConsultationProcessDto } from './dto/consultation-process.dto';
+// IMPORT ENTITY HISTORY & USER (Sesuaikan path import Anda)
+import { ConsultationHistory } from '../../engine/consultations/entities/consultation_history.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
-export class ConsultationsService {
-  start() {
-    throw new Error('Method not implemented.');
-  }
+export class SuspensionConsultationsService {
   constructor(
     @InjectRepository(SuspensionRule)
-    private ruleRepo: Repository<SuspensionRule>,
-    // Repository lain mungkin tidak perlu di-inject jika sudah pakai relation
-  ) {}
+    private rulesRepository: Repository<SuspensionRule>,
 
+    // INJECT REPOSITORY HISTORY & USER
+    @InjectRepository(ConsultationHistory)
+    private historyRepository: Repository<ConsultationHistory>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) { }
+
+  async start() {
+    return {
+      message: 'Silakan ambil data gejala dari endpoint GET /suspension/symptoms',
+      status: 'Ready',
+    };
+  }
+
+  // --- LOGIKA UTAMA CF ---
   async process(username: string, dto: ConsultationProcessDto) {
-    // 1. OPTIMASI PERTAMA: Ambil ID gejala yang dipilih user saja
-    const symptomIds = dto.symptoms.map(s => s.symptomId);
+    const symptomIds = dto.symptoms.map((s) => s.symptomId);
 
     if (symptomIds.length === 0) {
-        return { best: null, ranking: [] };
+      return { best: null, ranking: [] };
     }
 
-    // 2. OPTIMASI KEDUA: Fetch Rules + Problem + Solution SEKALIGUS
-    // Pastikan di entity Problem sudah ada relasi @OneToOne ke Solution ya!
-    const rules = await this.ruleRepo.find({
-      where: {
-        symptom: { id: In(symptomIds) } // Cuma ambil rule yang relevan (Filter di DB)
-      },
-      relations: [
-        'problem', 
-        'symptom', 
-        'problem.solution' // JOIN tabel solusi di sini (Eager loading)
-      ],
+    const rules = await this.rulesRepository.find({
+      where: { symptom: { id: In(symptomIds) } },
+      relations: ['problem', 'symptom', 'problem.solution'],
     });
 
-    // Grouping rules by problemId
     const grouped: Record<string, SuspensionRule[]> = {};
     for (const r of rules) {
       const pid = r.problem.id;
@@ -48,41 +49,40 @@ export class ConsultationsService {
 
     const results: any[] = [];
 
-    // 3. Loop perhitungan (Logic kamu yg ini sudah mantap!)
     for (const pid of Object.keys(grouped)) {
       let CFold = 0;
       const rulesForProblem = grouped[pid];
-      
-      // Ambil data masalah & solusi dari rule pertama (karena sudah di-load di awal)
       const problem = rulesForProblem[0].problem;
-      // Ambil solusi dari relasi problem (bukan query ulang)
-      const solutionText = problem.solution ? problem.solution.solution : null; 
+      const solutionText = problem.solution ? (problem.solution as any).solution : 'Solusi belum tersedia';
 
       for (const rule of rulesForProblem) {
-        const ans = dto.symptoms.find((s) => s.symptomId === rule.symptom.id);
-        if (!ans) continue;
+        const userInput = dto.symptoms.find((s) => s.symptomId === rule.symptom.id);
+        if (!userInput) continue;
 
-        const CF_user = this.clamp(ans.userCf, 0, 1);
-        const CF_expert = this.clamp(rule.cfPakar ?? 0.8, 0, 1); // Default 0.8 aman
-        const CF_temp = CF_user * CF_expert;
-
-        CFold = CFold + CF_temp * (1 - CFold);
+        const CF_user = this.clamp(userInput.userCf, 0, 1);
+        const CF_expert = this.clamp(rule.cfPakar, 0, 1);
+        const CF_current = CF_user * CF_expert;
+        CFold = CFold + CF_current * (1 - CFold);
       }
 
       results.push({
         problemId: pid,
-        problemName: problem.name, // Pastikan property di entity 'name' atau 'nama_masalah'
+        problemName: problem.name,
         certainty: CFold,
-        formattedCertainty: (CFold * 100).toFixed(2) + '%', // Tambahan manis buat frontend
+        formattedCertainty: (CFold * 100).toFixed(2) + '%',
         solution: solutionText,
+        fullProblemData: problem, // Simpan object problem lengkap
       });
     }
 
-    // 4. Sort Descending
     results.sort((a, b) => b.certainty - a.certainty);
-
-    // Ambil hasil terbaik (misal threshold minimal 0.01 biar yang 0% gak ikut)
     const best = results.length > 0 && results[0].certainty > 0 ? results[0] : null;
+
+    // --- TAMBAHAN: SIMPAN KE HISTORY DATABASE ---
+    if (best && username !== 'guest') {
+      await this.saveToHistory(username, best);
+    }
+    // --------------------------------------------
 
     return {
       user: username,
@@ -92,7 +92,30 @@ export class ConsultationsService {
     };
   }
 
-  // Helper function jadi private method
+  // Fungsi Helper: Simpan History
+  private async saveToHistory(username: string, bestResult: any) {
+    const user = await this.userRepository.findOneBy({ username });
+    if (user) {
+      const history = this.historyRepository.create({
+        user: user,
+        // Sesuaikan field ini dengan entity ConsultationHistory kamu
+        problem: bestResult.fullProblemData,
+        consultation_date: new Date(),
+        status: `Certainty: ${(bestResult.certainty * 100).toFixed(2)}%` // Simpan di field status
+      });
+      await this.historyRepository.save(history);
+    }
+  }
+
+  // Fungsi Helper: Ambil History untuk Dashboard
+  async getHistories(username: string) {
+    return this.historyRepository.find({
+      where: { user: { username } },
+      relations: ['problem'], // Load relasi masalah biar namanya muncul
+      order: { consultation_date: 'DESC' }
+    });
+  }
+
   private clamp(v: number, min = 0, max = 1) {
     if (typeof v !== 'number' || Number.isNaN(v)) return min;
     return Math.min(Math.max(v, min), max);

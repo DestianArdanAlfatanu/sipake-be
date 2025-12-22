@@ -5,6 +5,8 @@ import { SuspensionProblem } from './problems/entities/problems.entity';
 import { SuspensionSymptom } from './symptoms/entities/symptoms.entity';
 import { SuspensionRule } from './rules/entities/rules.entity';
 import { SuspensionSolution } from './solutions/entities/solutions.entity';
+import { User } from '../users/entities/user.entity';
+import { ConsultationHistory } from '../engine/consultations/entities/consultation_history.entity';
 
 import { SuspensionProblemsService } from './problems/problems.service';
 import { SuspensionProblemsController } from './problems/problems.controller';
@@ -18,8 +20,7 @@ import { SuspensionRulesController } from './rules/rules.controller';
 import { SuspensionSolutionsService } from './solutions/solutions.service';
 import { SuspensionSolutionsController } from './solutions/solutions.controller';
 
-import { ConsultationsService } from './consultations/consultations.service';
-import { ConsultationsController } from './consultations/consultations.controller';
+import { SuspensionConsultationsModule } from './consultations/consultations.module';
 
 @Module({
   imports: [
@@ -28,28 +29,29 @@ import { ConsultationsController } from './consultations/consultations.controlle
       SuspensionSymptom,
       SuspensionRule,
       SuspensionSolution,
+      User,
+      ConsultationHistory,
     ]),
+    SuspensionConsultationsModule,
   ],
   controllers: [
     SuspensionProblemsController,
     SuspensionSymptomsController,
     SuspensionRulesController,
     SuspensionSolutionsController,
-    ConsultationsController,
   ],
   providers: [
     SuspensionProblemsService,
     SuspensionSymptomsService,
     SuspensionRulesService,
     SuspensionSolutionsService,
-    ConsultationsService,
   ],
   exports: [
     SuspensionProblemsService,
     SuspensionSymptomsService,
     SuspensionRulesService,
     SuspensionSolutionsService,
-    ConsultationsService,
+    SuspensionConsultationsModule,
   ],
 })
-export class SuspensionModule {}
+export class SuspensionModule { }
