@@ -10,6 +10,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+// User Role Enum for RBAC
+export enum UserRole {
+  USER = 'USER',              // Regular user - can only consult
+  EXPERT = 'EXPERT',          // Expert - can manage knowledge base
+  SUPER_ADMIN = 'SUPER_ADMIN', // Super Admin - full access
+}
+
 @Entity({ name: 'users' })
 export class User {
   @Column({ type: 'varchar', primary: true })
@@ -51,9 +58,18 @@ export class User {
   @Column({ type: 'boolean', default: false })
   verified: boolean;
 
+  // Role for RBAC
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: UserRole.USER,
+  })
+  role: UserRole;
+
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
 }
+

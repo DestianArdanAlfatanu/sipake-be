@@ -17,7 +17,7 @@ export class UsersService {
     private verificationCodeRepository: Repository<VerificationCode>,
     private jwtService: JwtService,
     private mailerService: MailerService,
-  ) {}
+  ) { }
 
   async register(
     registerDto: RegisterDto,
@@ -79,7 +79,12 @@ export class UsersService {
       throw new HttpException('Email belum diverifikasi', 401);
     }
 
-    const token = this.jwtService.sign({ username: user.username });
+    // Include role in JWT payload for RBAC
+    const token = this.jwtService.sign({
+      username: user.username,
+      role: user.role,
+    });
+
     return {
       token,
       user,
@@ -119,7 +124,7 @@ export class UsersService {
         expired_date: expirationDate,
       });
     }
-    
+
     await this.mailerService.sendMail({
       to: user.email,
       subject: 'Email Verification',

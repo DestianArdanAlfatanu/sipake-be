@@ -42,6 +42,15 @@ export class SuspensionRulesService {
     return this.repo.find({ where: { problem: { id: problemId } }, order: { id: 'ASC' } });
   }
 
+  findByProblemAndSymptom(problemId: string, symptomId: string) {
+    return this.repo.findOne({
+      where: {
+        problem: { id: problemId },
+        symptom: { id: symptomId },
+      },
+    });
+  }
+
   findOne(id: number) {
     return this.repo.findOne({ where: { id } });
   }

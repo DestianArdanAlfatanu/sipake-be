@@ -20,6 +20,7 @@ import { join } from 'path';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { SuspensionModule } from './suspension/suspension.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { SuspensionModule } from './suspension/suspension.module';
     RulesModule,
     ConsultationsModule,
     SuspensionModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
@@ -91,4 +93,4 @@ import { SuspensionModule } from './suspension/suspension.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

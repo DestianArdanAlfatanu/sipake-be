@@ -5,7 +5,7 @@ import { UpdateSymptomDto } from './dto/update-symptom.dto';
 
 @Controller('engine/symptoms')
 export class SymptomsController {
-  constructor(private readonly symptomsService: SymptomsService) {}
+  constructor(private readonly symptomsService: SymptomsService) { }
 
   @Post()
   create(@Body() createSymptomDto: CreateSymptomDto) {
@@ -19,16 +19,16 @@ export class SymptomsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.symptomsService.findOne(+id);
+    return this.symptomsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSymptomDto: UpdateSymptomDto) {
-    return this.symptomsService.update(+id, updateSymptomDto);
+    return this.symptomsService.update(id, updateSymptomDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.symptomsService.remove(+id);
+    return this.symptomsService.remove(id);
   }
 }

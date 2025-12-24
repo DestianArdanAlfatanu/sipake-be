@@ -1,26 +1,42 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateSymptomDto } from './dto/create-symptom.dto';
 import { UpdateSymptomDto } from './dto/update-symptom.dto';
+import { Symptom } from './entities/symptom.entity';
 
 @Injectable()
 export class SymptomsService {
-  create(createSymptomDto: CreateSymptomDto) {
-    return 'This action adds a new symptom';
+  constructor(
+    @InjectRepository(Symptom)
+    private readonly symptomRepository: Repository<Symptom>,
+  ) { }
+
+  async create(createSymptomDto: CreateSymptomDto) {
+    const symptom = this.symptomRepository.create(createSymptomDto);
+    return await this.symptomRepository.save(symptom);
   }
 
-  findAll() {
-    return `This action returns all symptoms`;
+  async findAll() {
+    return await this.symptomRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} symptom`;
+  async findOne(id: string) {
+    return await this.symptomRepository.findOne({
+      where: { id },
+    });
   }
 
-  update(id: number, updateSymptomDto: UpdateSymptomDto) {
-    return `This action updates a #${id} symptom`;
+  async update(id: string, updateSymptomDto: UpdateSymptomDto) {
+    await this.symptomRepository.update(id, updateSymptomDto);
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} symptom`;
+  async remove(id: string) {
+    const symptom = await this.findOne(id);
+    if (symptom) {
+      await this.symptomRepository.remove(symptom);
+    }
+    return symptom;
   }
 }

@@ -5,7 +5,7 @@ import { UpdateProblemDto } from './dto/update-problem.dto';
 
 @Controller('engine/problems')
 export class ProblemsController {
-  constructor(private readonly problemsService: ProblemsService) {}
+  constructor(private readonly problemsService: ProblemsService) { }
 
   @Post()
   create(@Body() createProblemDto: CreateProblemDto) {
@@ -19,16 +19,16 @@ export class ProblemsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.problemsService.findOne(+id);
+    return this.problemsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProblemDto: UpdateProblemDto) {
-    return this.problemsService.update(+id, updateProblemDto);
+    return this.problemsService.update(id, updateProblemDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.problemsService.remove(+id);
+    return this.problemsService.remove(id);
   }
 }

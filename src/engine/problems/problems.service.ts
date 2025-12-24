@@ -1,26 +1,45 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.dto';
+import { Problem } from './entities/problem.entity';
 
 @Injectable()
 export class ProblemsService {
-  create(createProblemDto: CreateProblemDto) {
-    return 'This action adds a new problem';
+  constructor(
+    @InjectRepository(Problem)
+    private readonly problemRepository: Repository<Problem>,
+  ) { }
+
+  async create(createProblemDto: CreateProblemDto) {
+    const problem = this.problemRepository.create(createProblemDto);
+    return await this.problemRepository.save(problem);
   }
 
-  findAll() {
-    return `This action returns all problems`;
+  async findAll() {
+    return await this.problemRepository.find({
+      relations: ['solution'],
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} problem`;
+  async findOne(id: string) {
+    return await this.problemRepository.findOne({
+      where: { id },
+      relations: ['solution'],
+    });
   }
 
-  update(id: number, updateProblemDto: UpdateProblemDto) {
-    return `This action updates a #${id} problem`;
+  async update(id: string, updateProblemDto: UpdateProblemDto) {
+    await this.problemRepository.update(id, updateProblemDto);
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} problem`;
+  async remove(id: string) {
+    const problem = await this.findOne(id);
+    if (problem) {
+      await this.problemRepository.remove(problem);
+    }
+    return problem;
   }
 }
