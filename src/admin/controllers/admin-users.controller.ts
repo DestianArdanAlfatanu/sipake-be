@@ -2,6 +2,7 @@ import {
     Controller,
     Get,
     Post,
+    Put,
     Delete,
     Patch,
     Body,
@@ -16,7 +17,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../users/entities/user.entity';
 import { UsersService } from '../../users/users.service';
-import { CreateExpertDto, UpdateUserRoleDto } from '../dto/user.dto';
+import { CreateExpertDto, UpdateUserRoleDto, CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -115,6 +116,57 @@ export class AdminUsersController {
         }
     }
 
+    /**
+     * Create user with any role (USER/EXPERT/SUPER_ADMIN)
+     * This must come BEFORE @Post('expert') to avoid routing conflicts
+     */
+    @Post()
+    async createUser(@Body() dto: CreateUserDto) {
+        try {
+            // Check if username already exists
+            const existing = await this.userRepository.findOne({
+                where: { username: dto.username },
+            });
+            if (existing) {
+                throw new HttpException('Username already exists', HttpStatus.CONFLICT);
+            }
+
+            // Check if email already exists
+            const existingEmail = await this.userRepository.findOne({
+                where: { email: dto.email },
+            });
+            if (existingEmail) {
+                throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+            }
+
+            // Hash password
+            const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+            // Create user account
+            const user = await this.userRepository.save({
+                ...dto,
+                password: hashedPassword,
+                verified: dto.role !== UserRole.USER, // Auto-verify non-USER accounts
+                profilePicture: 'default-avatar.jpg',
+                plateNumber: dto.role === UserRole.USER ? '' : 'N/A',
+            });
+
+            // Remove sensitive data
+            const { password, ...sanitized } = user;
+
+            return {
+                message: 'User created successfully',
+                data: sanitized,
+            };
+        } catch (error) {
+            if (error instanceof HttpException) throw error;
+            throw new HttpException(
+                'Failed to create user',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
     @Post('expert')
     async createExpert(@Body() dto: CreateExpertDto) {
         try {
@@ -192,6 +244,56 @@ export class AdminUsersController {
             if (error instanceof HttpException) throw error;
             throw new HttpException(
                 'Failed to update user role',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    /**
+     * Update user profile (full update)
+     */
+    @Put(':username')
+    async updateUser(
+        @Param('username') username: string,
+        @Body() dto: UpdateUserDto,
+    ) {
+        try {
+            const user = await this.userRepository.findOne({
+                where: { username },
+            });
+            if (!user) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Check if email is being changed and if it's already taken
+            if (dto.email && dto.email !== user.email) {
+                const existingEmail = await this.userRepository.findOne({
+                    where: { email: dto.email },
+                });
+                if (existingEmail) {
+                    throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+                }
+            }
+
+            // Update user fields
+            if (dto.email) user.email = dto.email;
+            if (dto.name) user.name = dto.name;
+            if (dto.role) user.role = dto.role;
+            if (dto.phoneNumber !== undefined) user.phoneNumber = dto.phoneNumber;
+            if (dto.address !== undefined) user.address = dto.address;
+
+            await this.userRepository.save(user);
+
+            const { password, ...sanitized } = user;
+
+            return {
+                message: 'User updated successfully',
+                data: sanitized,
+            };
+        } catch (error) {
+            if (error instanceof HttpException) throw error;
+            throw new HttpException(
+                'Failed to update user',
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }

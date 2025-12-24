@@ -13,7 +13,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -26,7 +26,13 @@ export class AuthGuard implements CanActivate {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
-      request['username'] = payload.username;
+      // Set full user object for RolesGuard to use
+      request['user'] = {
+        username: payload.username,
+        role: payload.role,
+        name: payload.name,
+      };
+      request['username'] = payload.username; // Keep for backward compatibility
     } catch {
       throw new UnauthorizedException();
     }
