@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConsultationsService } from './consultations.service';
+import { ConsultationsStepService } from './consultations-step.service';
 import { ConsultationsController } from './consultations.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Problem } from '../problems/entities/problem.entity';
 import { User } from '../../users/entities/user.entity';
 import { Solution } from '../solutions/entities/solution.entity';
 import { Rule } from '../rules/entities/rule.entity';
+import { Symptom } from '../symptoms/entities/symptom.entity';
 import { RulesModule } from '../rules/rules.module';
 import { ConsultationHistory } from './entities/consultation_history.entity';
 
@@ -16,11 +18,12 @@ import { ConsultationHistory } from './entities/consultation_history.entity';
       Problem,
       Solution,
       Rule,
+      Symptom,
       ConsultationHistory
     ]),
     RulesModule,
   ],
   controllers: [ConsultationsController],
-  providers: [ConsultationsService],
+  providers: [ConsultationsService, ConsultationsStepService],
 })
-export class ConsultationsModule {}
+export class ConsultationsModule { }

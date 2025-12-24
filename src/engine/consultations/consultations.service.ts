@@ -99,9 +99,10 @@ export class ConsultationsService {
       const history = this.historyRepository.create({
         user: user,
         // Sesuaikan field ini dengan entity ConsultationHistory kamu
-        problem: bestResult.fullProblemData,
+        problem_id: bestResult.fullProblemData.id,
         consultation_date: new Date(),
-        status: `Certainty: ${(bestResult.certainty * 100).toFixed(2)}%` // Simpan di field status
+        status: `Certainty: ${(bestResult.certainty * 100).toFixed(2)}%`, // Simpan di field status
+        module: 'engine',
       });
       await this.historyRepository.save(history);
     }

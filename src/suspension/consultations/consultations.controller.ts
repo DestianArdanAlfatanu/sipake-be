@@ -1,11 +1,11 @@
 import { Controller, Post, Body, Get, HttpCode, UseGuards, Request } from '@nestjs/common';
-import { SuspensionConsultationsService } from './consultations.service';
-import { ConsultationProcessDto } from './dto/consultation-process.dto';
+import { SuspensionConsultationsStepService } from './consultations-step.service';
+import { ConsultationProcessStepDto } from './dto/consultation-process-step.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
 @Controller('suspension-consultations')
 export class SuspensionConsultationsController {
-  constructor(private readonly consultationsService: SuspensionConsultationsService) { }
+  constructor(private readonly consultationsService: SuspensionConsultationsStepService) { }
 
   @Get('start')
   start() {
@@ -23,7 +23,7 @@ export class SuspensionConsultationsController {
   @UseGuards(AuthGuard)
   @Post('process')
   @HttpCode(200)
-  async process(@Body() dto: ConsultationProcessDto, @Request() req) {
+  async process(@Body() dto: ConsultationProcessStepDto, @Request() req) {
     // Ambil username dari token JWT, fallback ke 'guest' jika tidak ada
     const username = req.username || 'guest';
     return this.consultationsService.process(username, dto);

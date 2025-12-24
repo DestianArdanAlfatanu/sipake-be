@@ -1,4 +1,3 @@
-import { Problem } from '../../problems/entities/problem.entity';
 import {
   Column,
   CreateDateColumn,
@@ -17,13 +16,15 @@ export class ConsultationHistory {
   @JoinColumn({ name: 'username', referencedColumnName: 'username' })
   user: User;
 
-  @ManyToOne(() => Problem, { nullable: true })
-  @JoinColumn({ name: 'problem_id', referencedColumnName: 'id' })
-  problem: Problem | null;
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  problem_id: string | null;
 
   @CreateDateColumn()
   consultation_date: Date;
 
   @Column({ type: 'varchar', length: 255 })
   status: string;
+
+  @Column({ type: 'varchar', length: 50, default: 'engine' })
+  module: string; // 'engine' or 'suspension'
 }
