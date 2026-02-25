@@ -127,7 +127,7 @@ export class SuspensionConsultationsStepService {
                         id: r.problem.id,
                         name: r.problem.name,
                         description: r.problem.description,
-                        picture: r.problem.media || '',
+                        picture: r.problem.pict || '',
                         solution: r.problem.solution,
                     },
                     certainty: r.certainty,
@@ -299,7 +299,7 @@ export class SuspensionConsultationsStepService {
                         media: problem.pict, // Suspension uses 'pict' field
                         solution: problem.solution ? {
                             id: problem.solution.id,
-                            name: problem.solution.solution,
+                            solution: problem.solution.solution,
                         } : null,
                     } : null,
                 };

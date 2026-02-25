@@ -78,7 +78,7 @@ export class SuspensionConsultationsService {
     results.sort((a, b) => b.certainty - a.certainty);
     const best = results.length > 0 && results[0].certainty > 0 ? results[0] : null;
 
-    // --- TAMBAHAN: SIMPAN KE HISTORY DATABASE ---
+    // --- SIMPAN KE HISTORY DATABASE ---
     if (best && username !== 'guest') {
       await this.saveToHistory(username, best);
     }

@@ -3,7 +3,7 @@ import { Rule } from '../../rules/entities/rule.entity';
 
 @Entity({ name: 'symptoms' })
 export class Symptom {
-  @PrimaryColumn({ type: 'varchar', length: 4 })
+  @PrimaryColumn({ type: 'varchar', length: 10 })
   id: string;
 
   @Column({ type: 'varchar', length: 255 })

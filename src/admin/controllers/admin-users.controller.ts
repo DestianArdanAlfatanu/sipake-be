@@ -48,10 +48,13 @@ export class AdminUsersController {
     async getAllUsers(
         @Query('search') search?: string,
         @Query('role') role?: UserRole,
-        @Query('page') page: number = 1,
-        @Query('limit') limit: number = 10,
+        @Query('page') rawPage?: string,
+        @Query('limit') rawLimit?: string,
     ) {
         try {
+            const page = parseInt(rawPage, 10) || 1;
+            const limit = parseInt(rawLimit, 10) || 100;
+
             let query = this.userRepository.createQueryBuilder('user');
 
             // Filter by role if provided

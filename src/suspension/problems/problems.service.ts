@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SuspensionProblem } from './entities/problems.entity';
+import { SuspensionSolution } from '../solutions/entities/solutions.entity';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.dto';
 
@@ -10,15 +11,31 @@ export class SuspensionProblemsService {
   constructor(
     @InjectRepository(SuspensionProblem)
     private repo: Repository<SuspensionProblem>,
-  ) {}
+    @InjectRepository(SuspensionSolution)
+    private solutionRepo: Repository<SuspensionSolution>,
+  ) { }
 
-  create(createDto: CreateProblemDto) {
-    const ent = this.repo.create(createDto);
-    return this.repo.save(ent);
+  async create(createDto: CreateProblemDto) {
+    const problem = this.repo.create({
+      id: createDto.id,
+      name: createDto.name,
+      description: createDto.description,
+      pict: createDto.pict,
+    });
+
+    // Create solution if provided
+    if (createDto.solution) {
+      const solution = this.solutionRepo.create({
+        solution: createDto.solution,
+      });
+      problem.solution = solution;
+    }
+
+    return this.repo.save(problem);
   }
 
   findAll() {
-    return this.repo.find({ relations: ['solution', 'rules'] });
+    return this.repo.find({ relations: ['solution'], order: { id: 'ASC' } });
   }
 
   findOne(id: string) {

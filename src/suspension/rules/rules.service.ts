@@ -25,10 +25,15 @@ export class SuspensionRulesService {
     const symptom = await this.symptomRepo.findOne({ where: { id: dto.symptomId } });
     if (!symptom) throw new NotFoundException('Symptom not found');
 
+    // Parse expertCf sebagai float, gunakan default 0.8 jika tidak valid
+    const cfValue = typeof dto.expertCf === 'number' && !isNaN(dto.expertCf)
+      ? dto.expertCf
+      : parseFloat(String(dto.expertCf ?? 0.8)) || 0.8;
+
     const entity = this.repo.create({
       problem,
       symptom,
-      cfPakar: dto.expertCf ?? 0.8,
+      cfPakar: cfValue,
     });
 
     return this.repo.save(entity);

@@ -34,15 +34,22 @@ export class RulesService {
       throw new NotFoundException('Symptom not found');
     }
 
+    // Parse cf_pakar secara eksplisit — mencegah nilai selalu default 0.8
+    const rawCf = createRuleDto.cf_pakar;
+    const cfValue = typeof rawCf === 'number' && !isNaN(rawCf)
+      ? rawCf
+      : parseFloat(String(rawCf ?? 0.8)) || 0.8;
+
     // Create rule with entities
     const rule = this.ruleRepository.create({
       problem,
       symptom,
-      cfPakar: createRuleDto.cf_pakar,
+      cfPakar: cfValue,
     });
 
     return await this.ruleRepository.save(rule);
   }
+
 
   async findAll() {
     return await this.ruleRepository.find({

@@ -4,16 +4,33 @@ import { Repository } from 'typeorm';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.dto';
 import { Problem } from './entities/problem.entity';
+import { Solution } from '../solutions/entities/solution.entity';
 
 @Injectable()
 export class ProblemsService {
   constructor(
     @InjectRepository(Problem)
     private readonly problemRepository: Repository<Problem>,
+    @InjectRepository(Solution)
+    private readonly solutionRepository: Repository<Solution>,
   ) { }
 
   async create(createProblemDto: CreateProblemDto) {
-    const problem = this.problemRepository.create(createProblemDto);
+    const problem = this.problemRepository.create({
+      id: createProblemDto.id,
+      name: createProblemDto.name,
+      description: createProblemDto.description,
+      pict: createProblemDto.pict,
+    });
+
+    // Create solution if provided
+    if (createProblemDto.solution) {
+      const solution = this.solutionRepository.create({
+        solution: createProblemDto.solution,
+      });
+      problem.solution = solution;
+    }
+
     return await this.problemRepository.save(problem);
   }
 
@@ -31,7 +48,8 @@ export class ProblemsService {
   }
 
   async update(id: string, updateProblemDto: UpdateProblemDto) {
-    await this.problemRepository.update(id, updateProblemDto);
+    const { solution, ...problemData } = updateProblemDto;
+    await this.problemRepository.update(id, problemData);
     return await this.findOne(id);
   }
 

@@ -6,15 +6,15 @@ import { IsString, IsNotEmpty, IsOptional, Length, Matches } from 'class-validat
 export class CreateProblemDto {
     @IsString()
     @IsNotEmpty()
-    @Length(3, 10)
-    @Matches(/^P\d{2,3}$/, {
-        message: 'Problem ID must be in format P01, P02, etc.',
+    @Length(2, 10)
+    @Matches(/^(PE)\d{2,3}$/, {
+        message: 'Problem ID must be in format PE01, PE02, etc.',
     })
     id: string;
 
     @IsString()
     @IsNotEmpty()
-    @Length(5, 255)
+    @Length(3, 255)
     name: string;
 
     @IsString()
@@ -24,6 +24,10 @@ export class CreateProblemDto {
     @IsString()
     @IsOptional()
     pict?: string;
+
+    @IsString()
+    @IsOptional()
+    solution?: string;
 }
 
 /**
@@ -32,7 +36,7 @@ export class CreateProblemDto {
 export class UpdateProblemDto {
     @IsString()
     @IsOptional()
-    @Length(5, 255)
+    @Length(3, 255)
     name?: string;
 
     @IsString()

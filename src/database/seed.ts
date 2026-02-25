@@ -1,5 +1,7 @@
 import { DataSource } from 'typeorm';
 import { AdminSeeder } from './seeders/admin.seeder';
+import { SuspensionSeeder } from './seeders/suspension.seeder';
+import { CarDataSeeder } from './seeders/car-data.seeder';
 import * as dotenv from 'dotenv';
 
 // Load environment variables
@@ -37,6 +39,16 @@ async function runSeeders() {
         console.log('Running Admin Seeder...');
         const adminSeeder = new AdminSeeder();
         await adminSeeder.run(dataSource);
+
+        // Run Car Data Seeder
+        console.log('\nRunning Car Data Seeder...');
+        const carDataSeeder = new CarDataSeeder(dataSource);
+        await carDataSeeder.run();
+
+        // Run Suspension Seeder
+        console.log('\nRunning Suspension Seeder...');
+        const suspensionSeeder = new SuspensionSeeder(dataSource);
+        await suspensionSeeder.run();
 
         console.log('\n✅ All seeders completed successfully!');
     } catch (error) {

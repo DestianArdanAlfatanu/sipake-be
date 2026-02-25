@@ -50,36 +50,21 @@ export class AdminEngineController {
     @Get('problems')
     async getAllProblems(
         @Query('search') search?: string,
-        @Query('page') page: number = 1,
-        @Query('limit') limit: number = 10,
     ) {
         try {
             const problems = await this.problemsService.findAll();
 
-            // Filter by search if provided
-            let filtered = problems;
             if (search) {
-                filtered = problems.filter(
+                const keyword = search.toLowerCase();
+                const filtered = problems.filter(
                     (p) =>
-                        p.name.toLowerCase().includes(search.toLowerCase()) ||
-                        p.id.toLowerCase().includes(search.toLowerCase()),
+                        p.name.toLowerCase().includes(keyword) ||
+                        p.id.toLowerCase().includes(keyword),
                 );
+                return { data: filtered };
             }
 
-            // Pagination
-            const start = (page - 1) * limit;
-            const end = start + limit;
-            const paginated = filtered.slice(start, end);
-
-            return {
-                data: paginated,
-                meta: {
-                    total: filtered.length,
-                    page,
-                    limit,
-                    totalPages: Math.ceil(filtered.length / limit),
-                },
-            };
+            return { data: problems };
         } catch (error) {
             throw new HttpException(
                 'Failed to fetch problems',
@@ -182,36 +167,21 @@ export class AdminEngineController {
     @Get('symptoms')
     async getAllSymptoms(
         @Query('search') search?: string,
-        @Query('page') page: number = 1,
-        @Query('limit') limit: number = 10,
     ) {
         try {
             const symptoms = await this.symptomsService.findAll();
 
-            // Filter by search if provided
-            let filtered = symptoms;
             if (search) {
-                filtered = symptoms.filter(
+                const keyword = search.toLowerCase();
+                const filtered = symptoms.filter(
                     (s) =>
-                        s.name.toLowerCase().includes(search.toLowerCase()) ||
-                        s.id.toLowerCase().includes(search.toLowerCase()),
+                        s.name.toLowerCase().includes(keyword) ||
+                        s.id.toLowerCase().includes(keyword),
                 );
+                return { data: filtered };
             }
 
-            // Pagination
-            const start = (page - 1) * limit;
-            const end = start + limit;
-            const paginated = filtered.slice(start, end);
-
-            return {
-                data: paginated,
-                meta: {
-                    total: filtered.length,
-                    page,
-                    limit,
-                    totalPages: Math.ceil(filtered.length / limit),
-                },
-            };
+            return { data: symptoms };
         } catch (error) {
             throw new HttpException(
                 'Failed to fetch symptoms',

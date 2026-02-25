@@ -1,55 +1,113 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Email Verification</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifikasi Akun SI PAK-E</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
       margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      width: 100%;
+      table-layout: fixed;
+      background-color: #f8fafc;
+      padding: 40px 0;
     }
     .container {
-      max-width: 600px;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      background-color: #ffffff;
+      margin: 0 auto;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      border: 1px solid #e2e8f0;
+    }
+    .logo {
+      font-weight: 800;
+      font-size: 22px;
+      color: #2563eb; /* Biru khas IT */
+      margin-bottom: 30px;
+      letter-spacing: -0.025em;
       text-align: center;
     }
     h1 {
-      color: #333;
-      font-size: 24px;
-      margin-bottom: 20px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-top: 0;
+      text-align: center;
     }
     p {
+      font-size: 15px;
       line-height: 1.6;
-      margin-bottom: 20px;
+      color: #475569;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .code-container {
+      background-color: #f1f5f9;
+      border-radius: 8px;
+      padding: 24px;
+      margin: 30px 0;
+      text-align: center;
+      border: 1px dashed #cbd5e1;
     }
     .code {
-      display: inline-block;
-      padding: 10px 20px;
-      font-size: 18px;
-      color: #fff;
-      background-color: #333;
-      border-radius: 4px;
-      text-decoration: none;
-      margin: 20px 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 32px;
+      font-weight: 700;
+      color: #2563eb;
+      letter-spacing: 6px;
+      margin: 0;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #f1f5f9;
+      text-align: center;
+    }
+    .footer-text {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+    .expire-note {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 16px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Hello, {{name}}</h1>
-    <p>Thank you for registering. Please use the following code to verify your email address:</p>
-    <p class="code">{{code}}</p>
-    <p>This code will expire in 1 hour.</p>
-    <p>Best regards,<br>Your Company</p>
+  <div class="wrapper">
+    <div class="container">
+      <div class="logo">SI PAK-E <span style="color: #64748b; font-weight: 400;">| Verification</span></div>
+      
+      <h1>Konfirmasi Alamat Email Anda</h1>
+      
+      <p>Halo <strong>{{name}}</strong>,<br>
+      Terima kasih telah bergabung dengan platform diagnostik kami. Gunakan kode verifikasi di bawah ini untuk menyelesaikan pendaftaran akun Anda.</p>
+      
+      <div class="code-container">
+        <div class="code">{{code}}</div>
+      </div>
+      
+      <p class="expire-note">Kode ini berlaku selama <strong>1 jam</strong>. <br>Jangan membagikan kode ini kepada siapapun untuk menjaga keamanan akun Anda.</p>
+      
+      <div class="footer">
+        <p class="footer-text">
+          <strong>Sistem Pakar Diagnostik BMW E36</strong><br>
+          © 2026 SI PAK-E. Purwokerto, Indonesia.<br>
+          <em>Pesan ini dikirim secara otomatis, mohon tidak membalas email ini.</em>
+        </p>
+      </div>
+    </div>
   </div>
 </body>
 </html>

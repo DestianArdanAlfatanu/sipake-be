@@ -7,7 +7,7 @@ import { SuspensionRule } from '../../suspension/rules/entities/rules.entity';
 
 @Injectable()
 export class SuspensionSeeder {
-  constructor(private dataSource: DataSource) {}
+  constructor(private dataSource: DataSource) { }
 
   async run() {
     const problemRepo = this.dataSource.getRepository(SuspensionProblem);
@@ -15,103 +15,122 @@ export class SuspensionSeeder {
     const solutionRepo = this.dataSource.getRepository(SuspensionSolution);
     const ruleRepo = this.dataSource.getRepository(SuspensionRule);
 
-    console.log('Seeding Suspension Data...');
+    console.log('🧹 Membersihkan data suspensi lama...');
+    // Hapus data dari tabel relasi (rules & solutions) terlebih dahulu
+    await ruleRepo.query('TRUNCATE TABLE suspension_rules CASCADE');
+    await solutionRepo.query('TRUNCATE TABLE suspension_solutions CASCADE');
+    // Baru hapus data induknya
+    await problemRepo.query('TRUNCATE TABLE suspension_problems CASCADE');
+    await symptomRepo.query('TRUNCATE TABLE suspension_symptoms CASCADE');
 
-    // 1. DATA GEJALA (SYMPTOMS)
-    const symptomsData = [
-      { id: 'G01', name: 'Shockbreaker rembes oli' },
-      { id: 'G02', name: 'Mobil limbung saat dikendarai' },
-      { id: 'G03', name: 'Bunyi gluduk-gluduk saat lewat jalan rusak' },
-      { id: 'G04', name: 'Setir bergetar di kecepatan tinggi' },
-      { id: 'G05', name: 'Timbul bunyi cit-cit (seperti tikus) di bagian roda' },
-      { id: 'G06', name: 'Ban habis tidak rata (botak sebelah)' },
-      { id: 'G07', name: 'Saat direm, terdengar bunyi jedug' },
+    console.log('🚗 Seeding Fixed Suspension Data (Revised by Expert)...');
+
+    const rawData = [
+      { s: "Roda panas dan bau seperti terbakar", p: "Kampas rem macet", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Mobil limbung saat dikendarai", p: "Kerusakan pada Shockbreaker", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat ada polisi tidur", p: "Kerusakan pada Karet Support Shock", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat ada polisi tidur", p: "Kerusakan pada Link Stabilizer", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Mobil lebih pendek dari yang seharusnya", p: "Kerusakan pada Per (Spring)", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Mobil lebih pendek dari yang seharusnya", p: "Kerusakan pada Shockbreaker", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi berdecit", p: "Kampas rem macet", cf: 0.8, sol: "Service/Rekondisi" },
+      { s: "Bunyi berdecit", p: "Piringan cakram bergelombang", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Setir Oblak/Bunyi", p: "Kerusakan pada Long Tie Rod (Rack End)", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Bantingan Keras", p: "Kerusakan pada Shockbreaker", cf: 0.6, sol: "Service/Rekondisi" },
+      { s: "Bunyi jedug saat di rem", p: "Kerusakan pada Bushing Arm Depan (FCAB / Lollipop)", cf: 0.9, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi jedug saat mundur", p: "Mounting gardan rusak", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi dengkuran", p: "Kerusakan  piringan roda", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Arah roda berubah/Oblag", p: "Kerusakan pada Rack Steer", cf: 0.8, sol: "Service/Rekondisi" },
+      { s: "Arah roda berubah/Oblag", p: "Kerusakan pada Tie Rod End", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Timbul bunyi 'gluduk-gluduk' (terutama jalan rusak)", p: "Kerusakan pada Link Stabilizer", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Timbul bunyi 'gluduk-gluduk' (terutama jalan rusak)", p: "Kerusakan pada Ball Joint", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Roda bergoyang/geol", p: "Kerusakan pada Tie Rod", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Roda bergoyang/geol", p: "Kerusakan pada Bearing", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Roda bergoyang/geol", p: "Kerusakan pada Ball Joint", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Muncul bunyi dengung (seiring kecepatan)", p: "Kerusakan pada Wheel Bearing (Laher Roda)", cf: 0.9, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat jalan kerikil", p: "Kerusakan pada Link Stabilizer", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat jalan kerikil", p: "Kerusakan pada Tie Rod End", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Rem terasa keras", p: "Masalah pada Booster Rem", cf: 0.9, sol: "Wajib Ganti Baru" },
+      { s: "Rem terasa keras", p: "Masalah pada vacum rem", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat berbelok", p: "Kerusakan pada Power Steering Pump", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat berbelok", p: "Kerusakan pada Rack Steer", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat masuk gigi", p: "Kerusakan pada Karet Kopel (Guibo/Flex Disc)", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat masuk gigi", p: "Kerusakan pada Karet Kopel Mounting Transmisi", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat lepas kopling", p: "Kerusakan pada Release Bearing", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat lepas kopling", p: "Kerusakan pada Cross Joint", cf: 0.5, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat kecepatan diatas 60 km", p: "Kerusakan pada Center Support Bearing (Gantungan Kopel)", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat kecepatan diatas 100 km", p: "Masalah Balancing Roda", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi saat kecepatan diatas 100 km", p: "Masalah propeller Shaft tidak balance", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi di jalan kasar kanan belakang", p: "Kerusakan pada Shock Mount Belakang (Top Mount)", cf: 0.5, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi di jalan kasar kanan belakang", p: "Kerusakan pada Shockbreaker", cf: 0.5, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi di jalan kasar kiri belakang", p: "Kerusakan pada Shock Mount Belakang (Top Mount)", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi di jalan kasar kiri belakang", p: "Kerusakan pada Shockbreaker", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Body getar seluruh body", p: "Kerusakan pada Shaft (Kopel)", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Body getar seluruh body", p: "Kerusakan pada Engine Mounting", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Body getar di tengah", p: "Kerusakan pada Center Support Bearing", cf: 0.9, sol: "Wajib Ganti Baru" },
+      { s: "Body getar di tengah", p: "Kerusakan pada Cross Joint", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi gluk di body saat oper gigi", p: "Kerusakan pada bushing propelershaft", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi gluk di body saat oper gigi", p: "Kerusakan pada Subframe", cf: 0.6, sol: "Wajib Ganti Baru" },
+      { s: "Setir berat ke kanan dan ke kiri", p: "Kerusakan pada Pompa Power Steering", cf: 0.6, sol: "Service/Rekondisi" },
+      { s: "Setir berat ke kanan dan ke kiri", p: "Kerusakan pada Rack Steer (Seal Bocor)", cf: 0.7, sol: "Service/Rekondisi" },
+      { s: "Setir berat ke kiri aja atau kanan aja", p: "Perlu Spooring (Alignment)", cf: 0.8, sol: "Service/Rekondisi" },
+      { s: "Setir berat ke kiri aja atau kanan aja", p: "Masalah pada Rack Steer (Valve)", cf: 0.6, sol: "Service/Rekondisi" },
+      { s: "Ban bunyi gemuruh", p: "Kerusakan pada Wheel Bearing (Laher Roda)", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Ban bunyi gemuruh", p: "Kerusakan pada Ban Aus Tidak Rata (Cupping)", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Ban bunyi cling cling", p: "Plat Pelindung (Dust Shield) Bengkok", cf: 0.6, sol: "Service/Rekondisi" },
+      { s: "Ban bunyi cling cling", p: "Klip Kampas Rem Lepas", cf: 0.4, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi dengung body belakang /tengah", p: "Kerusakan pada Wheel Bearing Belakang", cf: 0.9, sol: "Wajib Ganti Baru" },
+      { s: "Bunyi dengung body belakang /tengah", p: "Kerusakan pada Gardan (Differential)", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Setir bergetar saat ngerem", p: "Piringan cakram bergelombang", cf: 0.5, sol: "Service/Rekondisi" },
+      { s: "Mobil narik ke satu sisi saat direm", p: "Kaliper rem macet sebelah", cf: 0.7, sol: "Wajib Ganti Baru" },
+      { s: "Mobil terasa melayang di kecepatan tinggi", p: "Shockbreaker mulai lemah", cf: 0.8, sol: "Wajib Ganti Baru" },
+      { s: "Mobil tidak stabil saat pindah jalur", p: "Bushing arm depan aus", cf: 0.5, sol: "Wajib Ganti Baru" },
+      { s: "Setir tidak kembali lurus", p: "FCAB / Rack steer mulai aus", cf: 0.6, sol: "Service/Rekondisi" },
+      { s: "Setir berat saat parkir", p: "Tekanan ban / rack mulai berat", cf: 0.6, sol: "Service/Rekondisi" },
     ];
 
-    await symptomRepo.save(symptomsData);
+    // Map unik untuk Symptom dan Problem agar tidak duplikat di DB
+    const symptomsMap = new Map();
+    const problemsMap = new Map();
 
-    // 2. DATA MASALAH (PROBLEMS) & SOLUSI
-    // Kita buat Masalah dulu, baru Solusi
-    const problemsData = [
-      {
-        id: 'P01',
-        name: 'Kerusakan Shockbreaker',
-        description: 'Seal shockbreaker bocor atau gas shock sudah habis.',
-        solutionText: 'Wajib ganti shockbreaker baru (sepasang kanan-kiri). Jangan diservis karena tidak awet.',
-      },
-      {
-        id: 'P02',
-        name: 'Kerusakan Link Stabilizer',
-        description: 'Ball joint pada link stabilizer sudah oblak atau kering.',
-        solutionText: 'Ganti Link Stabilizer. Bisa pakai merk aftermarket.',
-      },
-      {
-        id: 'P03',
-        name: 'Kerusakan Bushing Arm (FCAB)',
-        description: 'Karet bushing arm depan (Lollipop) pecah atau getas.',
-        solutionText: 'Ganti karet bushing arm. Disarankan ganti dengan bahan Polyurethane jika ingin lebih awet.',
-      },
-      {
-        id: 'P04',
-        name: 'Kerusakan Tie Rod End',
-        description: 'Ball joint pada ujung tie rod sudah aus.',
-        solutionText: 'Ganti Tie Rod End dan wajib lakukan Spooring ulang setelah penggantian.',
-      },
-    ];
+    for (let i = 0; i < rawData.length; i++) {
+      const item = rawData[i];
 
-    // Simpan Masalah & Solusi
-    for (const p of problemsData) {
-      // a. Simpan Masalah
-      const problem = await problemRepo.save({
-        id: p.id,
-        name: p.name,
-        description: p.description,
-      });
+      // Normalize strings untuk menghindari duplikasi karena spasi
+      const normalizedSymptom = item.s.trim();
+      const normalizedProblem = item.p.trim();
 
-      // b. Simpan Solusi (Link ke Masalah)
-      await solutionRepo.save({
-        problem: problem, // Relasi OneToOne
-        solution: p.solutionText,
+      // 1. Simpan Symptom jika belum ada
+      if (!symptomsMap.has(normalizedSymptom)) {
+        const sId = `GS${(symptomsMap.size + 1).toString().padStart(2, '0')}`;
+        const newS = await symptomRepo.save({ id: sId, name: normalizedSymptom });
+        symptomsMap.set(normalizedSymptom, newS);
+      }
+
+      // 2. Simpan Problem & Solution jika belum ada
+      if (!problemsMap.has(normalizedProblem)) {
+        const pId = `PS${(problemsMap.size + 1).toString().padStart(2, '0')}`;
+        const newP = await problemRepo.save({
+          id: pId,
+          name: normalizedProblem,
+          description: `Masalah terdeteksi pada sistem suspensi: ${normalizedProblem}`
+        });
+
+        await solutionRepo.save({
+          problem: newP,
+          solution: item.sol,
+        });
+
+        problemsMap.set(normalizedProblem, newP);
+      }
+
+      // 3. Simpan Rule (Relasi Symptom -> Problem + CF Pakar)
+      await ruleRepo.save({
+        symptom: symptomsMap.get(normalizedSymptom),
+        problem: problemsMap.get(normalizedProblem),
+        cfPakar: item.cf,
       });
     }
 
-    // 3. DATA ATURAN (RULES - CF Pakar)
-    // Format: [Gejala ID, Masalah ID, Nilai CF (0.0 - 1.0)]
-    const rulesData = [
-      // Aturan untuk Shockbreaker (P01)
-      ['G01', 'P01', 1.0], // Rembes oli = Pasti Shock (100%)
-      ['G02', 'P01', 0.6], // Limbung = Kemungkinan Shock (60%)
-      ['G03', 'P01', 0.4], // Gluduk = Bisa jadi Shock (40%)
-
-      // Aturan untuk Link Stabilizer (P02)
-      ['G03', 'P02', 0.8], // Gluduk = Sangat mungkin Link Stabilizer (80%)
-      ['G02', 'P02', 0.4], // Limbung = Bisa jadi Link Stabilizer (40%)
-
-      // Aturan untuk Bushing Arm (P03)
-      ['G05', 'P03', 0.8], // Bunyi cit-cit = Khas Bushing kering (80%)
-      ['G07', 'P03', 0.9], // Jedug saat rem = Khas Bushing pecah (90%)
-      ['G04', 'P03', 0.5], // Setir getar = Bisa jadi bushing (50%)
-
-      // Aturan untuk Tie Rod (P04)
-      ['G04', 'P04', 0.7], // Setir getar = Yakin Tie Rod (70%)
-      ['G06', 'P04', 0.8], // Ban habis ga rata = Sangat Yakin Tie Rod/Spooring (80%)
-    ];
-
-    for (const r of rulesData) {
-        const [symptomId, problemId, cfValue] = r;
-        
-        const symptom = await symptomRepo.findOneBy({ id: symptomId as string });
-        const problem = await problemRepo.findOneBy({ id: problemId as string });
-
-        if (symptom && problem) {
-            await ruleRepo.save({
-                symptom: symptom,
-                problem: problem,
-                cfPakar: cfValue as number,
-            });
-        }
-    }
-
-    console.log('✅ Suspension Seeding Completed!');
+    console.log('✅ Suspension Seeding Completed Successfully!');
   }
 }

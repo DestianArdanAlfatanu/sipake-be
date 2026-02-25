@@ -50,32 +50,20 @@ export class AdminSuspensionController {
     @Get('problems')
     async getAllProblems(
         @Query('search') search?: string,
-        @Query('page') page: number = 1,
-        @Query('limit') limit: number = 10,
     ) {
         const problems = await this.problemsService.findAll();
 
-        let filtered = problems;
         if (search) {
-            filtered = problems.filter(
+            const keyword = search.toLowerCase();
+            const filtered = problems.filter(
                 (p) =>
-                    p.name.toLowerCase().includes(search.toLowerCase()) ||
-                    p.id.toLowerCase().includes(search.toLowerCase()),
+                    p.name.toLowerCase().includes(keyword) ||
+                    p.id.toLowerCase().includes(keyword),
             );
+            return { data: filtered };
         }
 
-        const start = (page - 1) * limit;
-        const paginated = filtered.slice(start, start + limit);
-
-        return {
-            data: paginated,
-            meta: {
-                total: filtered.length,
-                page,
-                limit,
-                totalPages: Math.ceil(filtered.length / limit),
-            },
-        };
+        return { data: problems };
     }
 
     @Get('problems/:id')
@@ -131,32 +119,20 @@ export class AdminSuspensionController {
     @Get('symptoms')
     async getAllSymptoms(
         @Query('search') search?: string,
-        @Query('page') page: number = 1,
-        @Query('limit') limit: number = 10,
     ) {
         const symptoms = await this.symptomsService.findAll();
 
-        let filtered = symptoms;
         if (search) {
-            filtered = symptoms.filter(
+            const keyword = search.toLowerCase();
+            const filtered = symptoms.filter(
                 (s) =>
-                    s.name.toLowerCase().includes(search.toLowerCase()) ||
-                    s.id.toLowerCase().includes(search.toLowerCase()),
+                    s.name.toLowerCase().includes(keyword) ||
+                    s.id.toLowerCase().includes(keyword),
             );
+            return { data: filtered };
         }
 
-        const start = (page - 1) * limit;
-        const paginated = filtered.slice(start, start + limit);
-
-        return {
-            data: paginated,
-            meta: {
-                total: filtered.length,
-                page,
-                limit,
-                totalPages: Math.ceil(filtered.length / limit),
-            },
-        };
+        return { data: symptoms };
     }
 
     @Get('symptoms/:id')
@@ -227,6 +203,18 @@ export class AdminSuspensionController {
             throw new HttpException(
                 'CF value must be between 0.0 and 1.0',
                 HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        // Cek duplikat: apakah kombinasi problem-symptom sudah ada
+        const existing = await this.rulesService.findByProblemAndSymptom(
+            dto.problemId,
+            dto.symptomId,
+        );
+        if (existing) {
+            throw new HttpException(
+                'Rule already exists for this problem-symptom combination',
+                HttpStatus.CONFLICT,
             );
         }
 

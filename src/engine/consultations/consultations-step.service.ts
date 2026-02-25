@@ -127,7 +127,7 @@ export class ConsultationsStepService {
                         id: r.problem.id,
                         name: r.problem.name,
                         description: r.problem.description,
-                        picture: r.problem.picture,
+                        picture: r.problem.pict || '',
                         solution: r.problem.solution,
                     },
                     certainty: r.certainty,
@@ -299,7 +299,7 @@ export class ConsultationsStepService {
                         picture: problem.pict,
                         solution: problem.solution ? {
                             id: problem.solution.id,
-                            name: problem.solution.solution,
+                            solution: problem.solution.solution,
                         } : null,
                     } : null,
                 };
