@@ -29,8 +29,8 @@ export class RegisterDto {
 
   @IsNotEmpty()
   @IsString()
-  @Matches(/^\+62\d{8,13}$/, {
-    message: 'phoneNumber must be a valid phone number starting with +62',
+  @Matches(/^\+[\d\-]{7,20}$/, {
+    message: 'Nomor HP harus diawali kode negara, contoh: +628123456789',
   })
   phoneNumber: string;
 

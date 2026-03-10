@@ -52,7 +52,7 @@ export class User {
   @Column({ type: 'varchar', length: 10, name: 'plate_number' })
   plateNumber: string;
 
-  @Column({ type: 'varchar', length: 255, name: 'profile_picture' })
+  @Column({ type: 'varchar', length: 255, name: 'profile_picture', nullable: true, default: '' })
   profilePicture: string;
 
   @Column({ type: 'boolean', default: false })

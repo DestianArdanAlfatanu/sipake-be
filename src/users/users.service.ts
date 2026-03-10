@@ -21,7 +21,7 @@ export class UsersService {
 
   async register(
     registerDto: RegisterDto,
-    profilePicture: Express.Multer.File,
+    profilePicture?: Express.Multer.File,
   ) {
     if (await this.userRepository.findOneBy({ email: registerDto.email })) {
       throw new HttpException('Email sudah digunakan oleh akun lain', 400);
@@ -42,7 +42,7 @@ export class UsersService {
       carSeries: { series_id: registerDto.car_series_id },
       carYear: { year: +registerDto.car_year },
       engineCode: { code: registerDto.engine_code },
-      profilePicture: profilePicture.path,
+      profilePicture: profilePicture?.path || '',
     });
 
     await this.sendVerificationEmail({
