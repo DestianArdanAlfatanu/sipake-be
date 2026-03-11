@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { AdminSeeder } from './seeders/admin.seeder';
+import { EngineSeeder } from './seeders/engine.seeder';
 import { SuspensionSeeder } from './seeders/suspension.seeder';
 import { CarDataSeeder } from './seeders/car-data.seeder';
 import * as dotenv from 'dotenv';
@@ -44,6 +45,11 @@ async function runSeeders() {
         console.log('\nRunning Car Data Seeder...');
         const carDataSeeder = new CarDataSeeder(dataSource);
         await carDataSeeder.run();
+
+        // Run Engine Seeder
+        console.log('\nRunning Engine Seeder...');
+        const engineSeeder = new EngineSeeder(dataSource);
+        await engineSeeder.run();
 
         // Run Suspension Seeder
         console.log('\nRunning Suspension Seeder...');

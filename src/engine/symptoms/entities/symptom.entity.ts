@@ -9,6 +9,9 @@ export class Symptom {
   @Column({ type: 'varchar', length: 255 })
   name: string; // Sesuaikan (misal: nama_gejala)
 
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
   @Column({ type: 'varchar', length: 255, nullable: true })
   picture: string; // Nama file gambar gejala
 
