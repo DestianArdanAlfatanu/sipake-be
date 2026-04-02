@@ -1,6 +1,8 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -166,5 +168,102 @@ export class UsersService {
       where: { username },
       relations: ['carSeries', 'carYear', 'engineCode'],
     });
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const user = await this.userRepository.findOneBy({
+      email: forgotPasswordDto.email,
+    });
+
+    if (!user) {
+      throw new HttpException(
+        'Email tidak ditemukan dalam sistem kami',
+        400,
+      );
+    }
+
+    const otpCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+    const expirationDate = new Date();
+    expirationDate.setHours(expirationDate.getHours() + 1);
+
+    // Check for existing verification code for this user
+    const existingCode = await this.verificationCodeRepository.findOneBy({
+      user: { username: user.username },
+    });
+
+    if (existingCode) {
+      await this.verificationCodeRepository.update(
+        { user: { username: user.username } },
+        {
+          code: otpCode,
+          expired_date: expirationDate,
+        },
+      );
+    } else {
+      await this.verificationCodeRepository.save({
+        user,
+        code: otpCode,
+        expired_date: expirationDate,
+      });
+    }
+
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Reset Password - SI PAK-E',
+      template: './reset-password',
+      context: {
+        name: user.name,
+        code: otpCode,
+      },
+    });
+
+    return {
+      message: 'Kode OTP telah dikirim ke email Anda',
+      email: user.email,
+    };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const user = await this.userRepository.findOneBy({
+      email: resetPasswordDto.email,
+    });
+
+    if (!user) {
+      throw new HttpException('User tidak ditemukan', 400);
+    }
+
+    const verificationCode = await this.verificationCodeRepository.findOne({
+      where: {
+        user: { username: user.username },
+        code: resetPasswordDto.code,
+      },
+    });
+
+    if (!verificationCode || verificationCode.expired_date < new Date()) {
+      throw new HttpException(
+        'Kode OTP tidak valid atau sudah kadaluarsa',
+        400,
+      );
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(
+      resetPasswordDto.newPassword,
+      salt,
+    );
+
+    // Update password
+    user.password = hashedPassword;
+    await this.userRepository.save(user);
+
+    // Remove used verification code
+    await this.verificationCodeRepository.remove(verificationCode);
+
+    return {
+      message: 'Password berhasil direset',
+    };
   }
 }

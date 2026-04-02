@@ -11,6 +11,8 @@ import {
 import { UsersService } from './users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ResponseMessage } from '../common/decorators/response-message.decorator';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { JwtService } from '@nestjs/jwt';
@@ -56,5 +58,23 @@ export class UsersController {
   @ResponseMessage('Berhasil verifikasi email')
   verifyEmail(@Body() body: { username: string; code: string }) {
     return this.usersService.verifyEmail(body.username, body.code);
+  }
+
+  @Post('resend-verification')
+  @ResponseMessage('Kode verifikasi berhasil dikirim ulang')
+  resendVerification(@Body() body: { username: string }) {
+    return this.usersService.sendVerificationEmail({ username: body.username });
+  }
+
+  @Post('forgot-password')
+  @ResponseMessage('Kode OTP berhasil dikirim')
+  forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.usersService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('reset-password')
+  @ResponseMessage('Password berhasil direset')
+  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.usersService.resetPassword(resetPasswordDto);
   }
 }
