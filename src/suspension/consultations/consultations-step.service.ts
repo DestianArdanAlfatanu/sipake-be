@@ -50,7 +50,7 @@ export class SuspensionConsultationsStepService {
         return {
             id: firstSymptom.id,
             name: firstSymptom.name,
-            picture: firstSymptom.media || '',
+            picture: firstSymptom.media || `${firstSymptom.id}.jpeg`,
         };
     }
 
@@ -159,7 +159,7 @@ export class SuspensionConsultationsStepService {
         return {
             id: nextSymptom.id,
             name: nextSymptom.name,
-            picture: nextSymptom.media || '',
+            picture: nextSymptom.media || `${nextSymptom.id}.jpeg`,
         };
     }
 

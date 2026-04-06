@@ -50,7 +50,7 @@ export class ConsultationsStepService {
         return {
             id: firstSymptom.id,
             name: firstSymptom.name,
-            picture: firstSymptom.picture,
+            picture: firstSymptom.picture || `${firstSymptom.id}.jpeg`,
         };
     }
 
@@ -159,7 +159,7 @@ export class ConsultationsStepService {
         return {
             id: nextSymptom.id,
             name: nextSymptom.name,
-            picture: nextSymptom.picture,
+            picture: nextSymptom.picture || `${nextSymptom.id}.jpeg`,
         };
     }
 

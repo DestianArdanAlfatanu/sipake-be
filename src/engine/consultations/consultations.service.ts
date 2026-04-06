@@ -98,7 +98,6 @@ export class ConsultationsService {
     if (user) {
       const history = this.historyRepository.create({
         user: user,
-        // Sesuaikan field ini dengan entity ConsultationHistory kamu
         problem_id: bestResult.fullProblemData.id,
         consultation_date: new Date(),
         status: `Certainty: ${(bestResult.certainty * 100).toFixed(2)}%`, // Simpan di field status
@@ -112,7 +111,7 @@ export class ConsultationsService {
   async getHistories(username: string) {
     return this.historyRepository.find({
       where: { user: { username } },
-      relations: ['problem'], // Load relasi masalah biar namanya muncul
+      relations: ['problem'],
       order: { consultation_date: 'DESC' }
     });
   }

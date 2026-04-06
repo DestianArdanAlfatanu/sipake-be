@@ -61,8 +61,17 @@ export class SuspensionRulesService {
   }
 
   async update(id: number, dto: UpdateRuleDto) {
-    await this.repo.update(id, dto as any);
-    return this.findOne(id);
+    const rule = await this.repo.findOne({ where: { id } });
+    if (!rule) {
+      throw new NotFoundException('Rule not found');
+    }
+
+    // Map DTO field to entity field
+    if (dto.expertCf !== undefined) {
+      rule.cfPakar = dto.expertCf;
+    }
+
+    return this.repo.save(rule);
   }
 
   remove(id: number) {
