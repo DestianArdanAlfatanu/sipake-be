@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { resolveImageFilename } from '../../common/utils/resolve-image';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SuspensionRule } from '../rules/entities/rules.entity';
@@ -50,7 +51,7 @@ export class SuspensionConsultationsStepService {
         return {
             id: firstSymptom.id,
             name: firstSymptom.name,
-            picture: firstSymptom.media || `${firstSymptom.id}.jpeg`,
+            picture: firstSymptom.media || resolveImageFilename(firstSymptom.id, 'symptoms') || '',
         };
     }
 
@@ -127,7 +128,7 @@ export class SuspensionConsultationsStepService {
                         id: r.problem.id,
                         name: r.problem.name,
                         description: r.problem.description,
-                        picture: r.problem.pict || '',
+                        picture: r.problem.pict || resolveImageFilename(r.problem.id, 'problems') || '',
                         solution: r.problem.solution,
                     },
                     certainty: r.certainty,
@@ -159,7 +160,7 @@ export class SuspensionConsultationsStepService {
         return {
             id: nextSymptom.id,
             name: nextSymptom.name,
-            picture: nextSymptom.media || `${nextSymptom.id}.jpeg`,
+            picture: nextSymptom.media || resolveImageFilename(nextSymptom.id, 'symptoms') || '',
         };
     }
 
@@ -296,7 +297,7 @@ export class SuspensionConsultationsStepService {
                         id: problem.id,
                         name: problem.name,
                         description: problem.description,
-                        media: problem.pict, // Suspension uses 'pict' field
+                        picture: problem.pict || resolveImageFilename(problem.id, 'problems') || '',
                         solution: problem.solution ? {
                             id: problem.solution.id,
                             solution: problem.solution.solution,

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { resolveImageFilename } from '../../common/utils/resolve-image';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, IsNull } from 'typeorm';
 import { Rule } from '../rules/entities/rule.entity';
@@ -50,7 +51,7 @@ export class ConsultationsStepService {
         return {
             id: firstSymptom.id,
             name: firstSymptom.name,
-            picture: firstSymptom.picture || `${firstSymptom.id}.jpeg`,
+            picture: firstSymptom.picture || resolveImageFilename(firstSymptom.id, 'symptoms') || '',
         };
     }
 
@@ -127,7 +128,7 @@ export class ConsultationsStepService {
                         id: r.problem.id,
                         name: r.problem.name,
                         description: r.problem.description,
-                        picture: r.problem.pict || '',
+                        picture: r.problem.pict || resolveImageFilename(r.problem.id, 'problems') || '',
                         solution: r.problem.solution,
                     },
                     certainty: r.certainty,
@@ -159,7 +160,7 @@ export class ConsultationsStepService {
         return {
             id: nextSymptom.id,
             name: nextSymptom.name,
-            picture: nextSymptom.picture || `${nextSymptom.id}.jpeg`,
+            picture: nextSymptom.picture || resolveImageFilename(nextSymptom.id, 'symptoms') || '',
         };
     }
 
@@ -296,7 +297,7 @@ export class ConsultationsStepService {
                         id: problem.id,
                         name: problem.name,
                         description: problem.description,
-                        picture: problem.pict,
+                        picture: problem.pict || resolveImageFilename(problem.id, 'problems') || '',
                         solution: problem.solution ? {
                             id: problem.solution.id,
                             solution: problem.solution.solution,
