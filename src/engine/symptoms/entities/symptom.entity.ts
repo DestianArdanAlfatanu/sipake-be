@@ -15,6 +15,9 @@ export class Symptom {
   @Column({ type: 'varchar', length: 255, nullable: true })
   picture: string; // Nama file gambar gejala
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  media?: string; // Nama file media (video/audio/gif) untuk gejala
+
   @OneToMany(() => Rule, (rule) => rule.symptom)
   rules: Rule[];
 }

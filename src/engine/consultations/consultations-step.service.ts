@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { resolveImageFilename } from '../../common/utils/resolve-image';
+import { resolveImageFilename, resolveMediaFilename } from '../../common/utils/resolve-image';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, IsNull } from 'typeorm';
 import { Rule } from '../rules/entities/rule.entity';
@@ -48,10 +48,29 @@ export class ConsultationsStepService {
             throw new Error('No symptoms found in database');
         }
 
+        // Resolve media file (video/audio/gif) untuk gejala
+        const resolvedMedia = resolveMediaFilename(firstSymptom.id, 'symptoms');
+        let mediaFile: string | null = null;
+        let mediaType: string | null = null;
+
+        if (firstSymptom.media) {
+            // Jika ada media di database, tentukan tipe dari ekstensi
+            const ext = firstSymptom.media.split('.').pop()?.toLowerCase();
+            mediaFile = firstSymptom.media;
+            if (['mp4', 'webm'].includes(ext || '')) mediaType = 'video';
+            else if (['mp3', 'wav', 'ogg'].includes(ext || '')) mediaType = 'audio';
+            else if (ext === 'gif') mediaType = 'gif';
+        } else if (resolvedMedia) {
+            mediaFile = resolvedMedia.filename;
+            mediaType = resolvedMedia.type;
+        }
+
         return {
             id: firstSymptom.id,
             name: firstSymptom.name,
             picture: firstSymptom.picture || resolveImageFilename(firstSymptom.id, 'symptoms') || '',
+            media: mediaFile,
+            mediaType: mediaType,
         };
     }
 
@@ -157,10 +176,28 @@ export class ConsultationsStepService {
             return null;
         }
 
+        // Resolve media file (video/audio/gif) untuk gejala
+        const resolvedMedia = resolveMediaFilename(nextSymptom.id, 'symptoms');
+        let mediaFile: string | null = null;
+        let mediaType: string | null = null;
+
+        if (nextSymptom.media) {
+            const ext = nextSymptom.media.split('.').pop()?.toLowerCase();
+            mediaFile = nextSymptom.media;
+            if (['mp4', 'webm'].includes(ext || '')) mediaType = 'video';
+            else if (['mp3', 'wav', 'ogg'].includes(ext || '')) mediaType = 'audio';
+            else if (ext === 'gif') mediaType = 'gif';
+        } else if (resolvedMedia) {
+            mediaFile = resolvedMedia.filename;
+            mediaType = resolvedMedia.type;
+        }
+
         return {
             id: nextSymptom.id,
             name: nextSymptom.name,
             picture: nextSymptom.picture || resolveImageFilename(nextSymptom.id, 'symptoms') || '',
+            media: mediaFile,
+            mediaType: mediaType,
         };
     }
 
