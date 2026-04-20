@@ -12,6 +12,14 @@ export class ConsultationsController {
     return this.consultationsService.start();
   }
 
+  // Endpoint untuk resume session konsultasi yang aktif (setelah refresh halaman)
+  @UseGuards(AuthGuard)
+  @Get('resume')
+  async resume(@Request() req) {
+    const username = req.username || 'guest';
+    return this.consultationsService.resume(username);
+  }
+
   // Endpoint untuk mengambil riwayat konsultasi user
   @UseGuards(AuthGuard)
   @Get('histories')

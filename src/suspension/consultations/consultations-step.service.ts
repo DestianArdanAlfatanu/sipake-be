@@ -75,6 +75,37 @@ export class SuspensionConsultationsStepService {
     }
 
     /**
+     * Resume consultation - check if user has an active session
+     * If yes, return the next unanswered symptom and question number
+     * If no, return null so frontend knows to start fresh
+     */
+    async resume(username: string) {
+        const session = this.sessions.get(username);
+
+        if (!session || session.askedSymptomIds.size === 0) {
+            // No active session — frontend should call start
+            return { active: false, data: null };
+        }
+
+        // Find the next unanswered symptom
+        const nextSymptom = await this.getNextSymptom(session);
+
+        if (!nextSymptom) {
+            // All symptoms already answered but result not yet computed
+            // This is an edge case — clear the session and let frontend start fresh
+            return { active: false, data: null };
+        }
+
+        return {
+            active: true,
+            data: {
+                symptom: nextSymptom,
+                questionNumber: session.askedSymptomIds.size + 1,
+            },
+        };
+    }
+
+    /**
      * Process one symptom answer and return next symptom or ranked results
      * CERTAINTY FACTOR METHOD - EXHAUSTIVE SEARCH
      */
