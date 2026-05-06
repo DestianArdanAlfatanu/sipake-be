@@ -20,8 +20,8 @@ import { SuspensionProblemsService } from '../../suspension/problems/problems.se
 import { SuspensionSymptomsService } from '../../suspension/symptoms/symptoms.service';
 import { SuspensionRulesService } from '../../suspension/rules/rules.service';
 
-import { CreateProblemDto, UpdateProblemDto } from '../dto/problem.dto';
-import { CreateSymptomDto, UpdateSymptomDto } from '../dto/symptom.dto';
+import { CreateSuspensionProblemDto, UpdateSuspensionProblemDto } from '../dto/suspension-problem.dto';
+import { CreateSuspensionSymptomDto, UpdateSuspensionSymptomDto } from '../dto/suspension-symptom.dto';
 import { CreateRuleDto } from '../../suspension/rules/dto/create-rule.dto';
 import { UpdateRuleDto } from '../../suspension/rules/dto/update-rule.dto';
 
@@ -76,7 +76,7 @@ export class AdminSuspensionController {
     }
 
     @Post('problems')
-    async createProblem(@Body() dto: CreateProblemDto) {
+    async createProblem(@Body() dto: CreateSuspensionProblemDto) {
         const existing = await this.problemsService.findOne(dto.id);
         if (existing) {
             throw new HttpException('Problem ID already exists', HttpStatus.CONFLICT);
@@ -90,7 +90,7 @@ export class AdminSuspensionController {
     }
 
     @Put('problems/:id')
-    async updateProblem(@Param('id') id: string, @Body() dto: UpdateProblemDto) {
+    async updateProblem(@Param('id') id: string, @Body() dto: UpdateSuspensionProblemDto) {
         const problem = await this.problemsService.findOne(id);
         if (!problem) {
             throw new HttpException('Problem not found', HttpStatus.NOT_FOUND);
@@ -145,7 +145,7 @@ export class AdminSuspensionController {
     }
 
     @Post('symptoms')
-    async createSymptom(@Body() dto: CreateSymptomDto) {
+    async createSymptom(@Body() dto: CreateSuspensionSymptomDto) {
         const existing = await this.symptomsService.findOne(dto.id);
         if (existing) {
             throw new HttpException('Symptom ID already exists', HttpStatus.CONFLICT);
@@ -159,7 +159,7 @@ export class AdminSuspensionController {
     }
 
     @Put('symptoms/:id')
-    async updateSymptom(@Param('id') id: string, @Body() dto: UpdateSymptomDto) {
+    async updateSymptom(@Param('id') id: string, @Body() dto: UpdateSuspensionSymptomDto) {
         const symptom = await this.symptomsService.findOne(id);
         if (!symptom) {
             throw new HttpException('Symptom not found', HttpStatus.NOT_FOUND);
